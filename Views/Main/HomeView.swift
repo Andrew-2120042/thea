@@ -9,6 +9,8 @@ struct HomeView: View {
     @StateObject private var affirmationVM = AffirmationViewModel()
     @StateObject private var recordingVM   = RecordingViewModel()
     @StateObject private var hypeVM        = HypeViewModel()
+    @StateObject private var intentionsVM  = IntentionsViewModel()
+    @StateObject private var journalVM     = JournalViewModel()
     @EnvironmentObject var storeKit: StoreKitService
 
     @State private var page: Int = 0
@@ -37,7 +39,10 @@ struct HomeView: View {
                 .allowsHitTesting(false)
         }
         .ignoresSafeArea()
-        .onAppear { homeVM.loadUserData() }
+        .onAppear {
+            homeVM.loadUserData()
+            Task { await intentionsVM.loadToday() }
+        }
         // Haptic celebration when all words matched — navigation is via the Continue button
         .onChange(of: recordingVM.completionPercentage) { pct in
             guard page == 2, pct >= 1.0, !recordingVM.thresholdReached else { return }
@@ -67,6 +72,28 @@ struct HomeView: View {
         case 3: thanksScreen
         case 4: feelingScreen
         case 5: calendarScreen
+        case 6: IntentionsInputView(
+                    viewModel: intentionsVM,
+                    feeling: selectedFeeling,
+                    onContinue: { go(7) },
+                    onSkip: { go(5) }
+                )
+        case 7: TodaysIntentionsView(
+                    viewModel: intentionsVM,
+                    todaysAffirmation: affirmationVM.currentAffirmation?.text,
+                    onDone: { finishFlow() }
+                )
+        case 8: DayReviewView(
+                    intentionsVM: intentionsVM,
+                    onContinue: { go(9) },
+                    onSkip: { finishFlow() }
+                )
+        case 9: JournalEntryView(
+                    viewModel: journalVM,
+                    feeling: selectedFeeling,
+                    onComplete: { finishFlow() },
+                    onSkip: { finishFlow() }
+                )
         default: homeScreen
         }
     }
@@ -93,7 +120,7 @@ struct HomeView: View {
             }
         }
         .ignoresSafeArea()
-        .opacity(page <= 2 ? 1.0 : 0.0)
+        .opacity(page <= 2 ? 1.0 : 0.0) // pages 3+ have their own backgrounds
     }
 
     // MARK: - Page 0: Home
@@ -135,6 +162,39 @@ struct HomeView: View {
 
             Spacer()
 
+            // Intentions preview — morning shows focus, night shows completion
+            if !intentionsVM.intentions.isEmpty {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text(isMorning ? "TODAY'S FOCUS" : "TODAY'S PROGRESS")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(.white.opacity(0.6))
+                        .tracking(1.5)
+
+                    ForEach(intentionsVM.intentions.prefix(3)) { item in
+                        HStack(spacing: 10) {
+                            Image(systemName: item.completed ? "checkmark.circle.fill" : "circle")
+                                .font(.system(size: 15))
+                                .foregroundColor(.white.opacity(item.completed ? 1.0 : 0.55))
+                            Text(item.text)
+                                .font(.system(size: 14))
+                                .foregroundColor(.white.opacity(item.completed ? 0.5 : 0.88))
+                                .strikethrough(item.completed)
+                                .lineLimit(1)
+                        }
+                    }
+
+                    if !isMorning {
+                        let done = intentionsVM.intentions.filter { $0.completed }.count
+                        Text("\(done) of \(intentionsVM.intentions.count) complete")
+                            .font(.system(size: 12))
+                            .foregroundColor(.white.opacity(0.5))
+                            .padding(.top, 2)
+                    }
+                }
+                .padding(.horizontal, 28)
+                .padding(.bottom, 20)
+            }
+
             Button(action: startFlow) {
                 Text(homeVM.isAllCompletedToday ? "Completed today ✓" : "Check in")
                     .font(.system(size: 17, weight: .semibold))
@@ -160,6 +220,43 @@ struct HomeView: View {
                 Spacer()
             }
             .padding(.bottom, 36)
+
+            #if DEBUG
+            VStack(spacing: 6) {
+                Text("DEBUG — \(isMorningOverride == 1 ? "☀️ MORNING" : isMorningOverride == 2 ? "🌙 EVENING" : "⏱ AUTO (\(isMorning ? "morning" : "evening"))")")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundColor(.white.opacity(0.5))
+                    .tracking(1)
+                HStack(spacing: 10) {
+                    Button("☀️ Morning") {
+                        isMorningOverride = 1
+                        UserDefaults.standard.set(1, forKey: "debug_time_mode")
+                    }
+                    .padding(.horizontal, 10).padding(.vertical, 5)
+                    .background(isMorningOverride == 1 ? Color.white.opacity(0.25) : Color.clear)
+                    .clipShape(Capsule())
+
+                    Button("🌙 Evening") {
+                        isMorningOverride = 2
+                        UserDefaults.standard.set(2, forKey: "debug_time_mode")
+                    }
+                    .padding(.horizontal, 10).padding(.vertical, 5)
+                    .background(isMorningOverride == 2 ? Color.white.opacity(0.25) : Color.clear)
+                    .clipShape(Capsule())
+
+                    Button("Auto") {
+                        isMorningOverride = 0
+                        UserDefaults.standard.set(0, forKey: "debug_time_mode")
+                    }
+                    .padding(.horizontal, 10).padding(.vertical, 5)
+                    .background(isMorningOverride == 0 ? Color.white.opacity(0.25) : Color.clear)
+                    .clipShape(Capsule())
+                }
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(.white.opacity(0.6))
+            }
+            .padding(.bottom, 16)
+            #endif
         }
     }
 
@@ -463,7 +560,7 @@ struct HomeView: View {
                             selectedFeeling = feeling
                             hypeVM.saveFeeling(feeling, for: affirmationVM.currentAffirmation)
                             HapticManager.selection()
-                            go(5)
+                            navigateAfterFeeling()
                         }) {
                             Text(feeling)
                                 .font(.system(size: 17, weight: .semibold))
@@ -686,6 +783,29 @@ struct HomeView: View {
         }
         .animation(.spring(response: 0.5, dampingFraction: 0.75), value: isRecording)
         .animation(.spring(response: 0.5, dampingFraction: 0.75), value: isComplete)
+    }
+
+    // MARK: - Morning/night routing
+    @State private var isMorningOverride: Int = UserDefaults.standard.integer(forKey: "debug_time_mode")
+    // 0 = auto, 1 = morning, 2 = evening
+
+    private var isMorning: Bool {
+        #if DEBUG
+        if isMorningOverride == 1 { return true }
+        if isMorningOverride == 2 { return false }
+        #endif
+        let hour = Calendar.current.component(.hour, from: Date())
+        return hour >= 5 && hour < 17
+    }
+
+    private func navigateAfterFeeling() {
+        if isMorning {
+            Task { await intentionsVM.loadToday() }
+            go(6)   // Morning: intentions input
+        } else {
+            Task { await intentionsVM.loadToday() }  // load to show completion in review
+            go(8)   // Night: day review
+        }
     }
 
     // MARK: - Inline recording
