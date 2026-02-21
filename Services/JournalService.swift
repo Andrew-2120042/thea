@@ -27,7 +27,7 @@ class JournalService {
         return response.first
     }
 
-    func saveJournal(entry: String, prompt: String?, feeling: String?) async throws {
+    func saveJournal(entry: String, prompt: String?, feeling: String?, photoUrls: [String]? = nil) async throws {
         let words = entry.components(separatedBy: .whitespacesAndNewlines).filter { !$0.isEmpty }.count
         let record = DailyJournal(
             id: UUID(),
@@ -37,6 +37,7 @@ class JournalService {
             prompt: prompt,
             feeling: feeling,
             wordCount: words,
+            photoUrls: photoUrls,
             createdAt: Date(),
             updatedAt: Date()
         )

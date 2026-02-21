@@ -4,6 +4,13 @@ import SwiftUI
 class IntentionsViewModel: ObservableObject {
     @Published var intentions: [Intention] = []
     @Published var isLoading = false
+    var deviceId: String {
+        let key = "hype_device_id"
+        if let stored = UserDefaults.standard.string(forKey: key) { return stored }
+        let new = UUID().uuidString
+        UserDefaults.standard.set(new, forKey: key)
+        return new
+    }
 
     func loadToday() async {
         isLoading = true

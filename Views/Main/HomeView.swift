@@ -19,6 +19,7 @@ struct HomeView: View {
     @State private var isRecording = false          // inline on page 2
     @State private var showSettings  = false
     @State private var showPaywall   = false
+    @State private var showInsights  = false
     @State private var selectedFeeling: String?
 
     // Lavender used as the bridge colour between gradient and lavender pages
@@ -61,6 +62,9 @@ struct HomeView: View {
         .fullScreenCover(isPresented: $showPaywall) {
             PaywallView().environmentObject(storeKit)
         }
+        .fullScreenCover(isPresented: $showInsights) {
+            InsightsContainerView()
+        }
     }
 
     @ViewBuilder
@@ -75,7 +79,7 @@ struct HomeView: View {
         case 6: IntentionsInputView(
                     viewModel: intentionsVM,
                     feeling: selectedFeeling,
-                    onContinue: { go(7) },
+                    onContinue: { finishFlow() },
                     onSkip: { go(5) }
                 )
         case 7: TodaysIntentionsView(
@@ -211,7 +215,7 @@ struct HomeView: View {
 
             HStack {
                 Spacer()
-                Button(action: { go(5) }) {
+                Button(action: { showInsights = true }) {
                     Text("Trends")
                         .font(.system(size: 16, weight: .medium))
                         .foregroundColor(.white)
@@ -250,6 +254,24 @@ struct HomeView: View {
                     }
                     .padding(.horizontal, 10).padding(.vertical, 5)
                     .background(isMorningOverride == 0 ? Color.white.opacity(0.25) : Color.clear)
+                    .clipShape(Capsule())
+                }
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(.white.opacity(0.6))
+
+                HStack(spacing: 10) {
+                    Button("✓ Intentions") {
+                        go(7)
+                    }
+                    .padding(.horizontal, 10).padding(.vertical, 5)
+                    .background(Color.white.opacity(0.15))
+                    .clipShape(Capsule())
+
+                    Button("📝 Journal") {
+                        go(9)
+                    }
+                    .padding(.horizontal, 10).padding(.vertical, 5)
+                    .background(Color.white.opacity(0.15))
                     .clipShape(Capsule())
                 }
                 .font(.system(size: 12, weight: .medium))

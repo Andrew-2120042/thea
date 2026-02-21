@@ -5,6 +5,11 @@ struct TodaysIntentionsView: View {
     let todaysAffirmation: String?
     let onDone: () -> Void
 
+    @State private var selectedDate = Date()
+    @State private var showDatePicker = false
+    @State private var newIntentionText = ""
+    @State private var showAddIntention = false
+
     private var darkText: Color { Color(red: 0.08, green: 0.08, blue: 0.14) }
     private var mutedText: Color { Color(red: 0.42, green: 0.42, blue: 0.48) }
 
@@ -14,36 +19,52 @@ struct TodaysIntentionsView: View {
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // Nav
+                // Header with title
                 HStack {
-                    Button(action: onDone) {
-                        HStack(spacing: 6) {
-                            Image(systemName: "chevron.left")
-                                .font(.system(size: 15, weight: .medium))
-                            Text("Home")
-                                .font(.system(size: 17))
-                        }
+                    Text("Your Focus Today")
+                        .font(.system(size: 26, weight: .regular, design: .serif))
                         .foregroundColor(darkText)
-                    }
                     Spacer()
-                    Text(Date(), style: .date)
-                        .font(.system(size: 15))
-                        .foregroundColor(mutedText)
                 }
-                .padding(.horizontal, 24)
-                .padding(.top, 60)
+                .padding(.horizontal, 20)
+                .padding(.top, 12)
+                .padding(.bottom, 16)
+
+                // Calendar header - day and month selector
+                VStack(spacing: 16) {
+                    HStack {
+                        Text(dayOfWeek(selectedDate))
+                            .font(.system(size: 40, weight: .regular, design: .serif))
+                            .foregroundColor(darkText)
+
+                        Spacer()
+
+                        Button(action: { showDatePicker = true }) {
+                            HStack(spacing: 8) {
+                                Text(monthYear(selectedDate))
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundColor(mutedText)
+
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundColor(mutedText)
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 20)
+
+                    // Week view
+                    weekView
+                        .padding(.top, 8)
+                }
                 .padding(.bottom, 20)
 
-                Divider().padding(.horizontal, 24)
+                Divider().padding(.horizontal, 20)
 
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 32) {
                         // Intentions
                         VStack(alignment: .leading, spacing: 16) {
-                            Text("Your Focus Today")
-                                .font(.system(size: 26, weight: .regular, design: .serif))
-                                .foregroundColor(darkText)
-
                             if viewModel.intentions.isEmpty {
                                 Text("No intentions set for today.")
                                     .font(.system(size: 16))
@@ -62,6 +83,27 @@ struct TodaysIntentionsView: View {
                                     .foregroundColor(mutedText)
                                     .padding(.top, 4)
                             }
+
+                            // Add intention button
+                            Button(action: { showAddIntention = true }) {
+                                HStack(spacing: 12) {
+                                    Image(systemName: "plus.circle.fill")
+                                        .font(.system(size: 20))
+                                        .foregroundColor(Color(red: 0.55, green: 0.36, blue: 0.96))
+
+                                    Text("Add Intention")
+                                        .font(.system(size: 16, weight: .medium))
+                                        .foregroundColor(darkText)
+
+                                    Spacer()
+                                }
+                                .padding(16)
+                                .background(Color.white)
+                                .clipShape(RoundedRectangle(cornerRadius: 14))
+                                .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            .padding(.top, 12)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 24)
@@ -89,24 +131,107 @@ struct TodaysIntentionsView: View {
                             .padding(.vertical, 8)
                         }
 
-                        // Done button
-                        Button(action: onDone) {
-                            Text("Done")
-                                .font(.system(size: 17, weight: .semibold))
-                                .foregroundColor(darkText)
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 72)
-                                .background(Color.white)
-                                .clipShape(RoundedRectangle(cornerRadius: 20))
-                                .shadow(color: .black.opacity(0.1), radius: 8, y: 4)
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                        .padding(.horizontal, 24)
-                        .padding(.bottom, 48)
+                        // Bottom padding
+                        Color.clear.frame(height: 100)
                     }
                 }
             }
         }
+        .sheet(isPresented: $showDatePicker) {
+            DatePicker("Select Date", selection: $selectedDate, displayedComponents: .date)
+                .datePickerStyle(.graphical)
+                .presentationDetents([.medium])
+                .presentationDragIndicator(.visible)
+        }
+        .alert("Add Intention", isPresented: $showAddIntention) {
+            TextField("What do you want to accomplish?", text: $newIntentionText)
+            Button("Cancel", role: .cancel) {
+                newIntentionText = ""
+            }
+            Button("Add") {
+                if !newIntentionText.isEmpty {
+                    viewModel.addIntention(text: newIntentionText)
+                    Task {
+                        await viewModel.save(feeling: nil)
+                    }
+                    newIntentionText = ""
+                }
+            }
+        }
+    }
+
+    // MARK: - Week View
+    private var weekView: some View {
+        HStack(spacing: 0) {
+            ForEach(weekDays(for: selectedDate), id: \.self) { date in
+                let isFuture = isFutureDate(date)
+
+                Button(action: {
+                    if !isFuture {
+                        selectedDate = date
+                    }
+                }) {
+                    VStack(spacing: 8) {
+                        Text(dayLetter(date))
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(isFuture ? mutedText.opacity(0.3) : mutedText)
+
+                        Text("\(Calendar.current.component(.day, from: date))")
+                            .font(.system(size: 24, weight: isToday(date) ? .bold : .regular))
+                            .foregroundColor(isFuture ? mutedText.opacity(0.2) : (isToday(date) ? darkText : mutedText.opacity(0.6)))
+                    }
+                    .frame(maxWidth: .infinity)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(PlainButtonStyle())
+                .disabled(isFuture)
+            }
+        }
+        .padding(.horizontal, 20)
+    }
+
+    // MARK: - Helper Functions
+    private func dayOfWeek(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEEE"
+        return formatter.string(from: date)
+    }
+
+    private func monthYear(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM yyyy"
+        return formatter.string(from: date).uppercased()
+    }
+
+    private func dayLetter(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEEEE"
+        return formatter.string(from: date).uppercased()
+    }
+
+    private func weekDays(for date: Date) -> [Date] {
+        let calendar = Calendar.current
+        guard let weekInterval = calendar.dateInterval(of: .weekOfYear, for: date) else {
+            return []
+        }
+
+        var dates: [Date] = []
+        var currentDate = weekInterval.start
+
+        while currentDate < weekInterval.end {
+            dates.append(currentDate)
+            currentDate = calendar.date(byAdding: .day, value: 1, to: currentDate)!
+        }
+
+        return dates
+    }
+
+    private func isToday(_ date: Date) -> Bool {
+        Calendar.current.isDate(date, inSameDayAs: selectedDate)
+    }
+
+    private func isFutureDate(_ date: Date) -> Bool {
+        Calendar.current.compare(date, to: Date(), toGranularity: .day) == .orderedDescending
     }
 }
 

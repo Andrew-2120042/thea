@@ -6,7 +6,7 @@ struct JournalEntryView: View {
     let onComplete: () -> Void
     let onSkip: () -> Void
 
-    @FocusState private var isFocused: Bool
+    @State private var showFullScreenJournal = false
 
     private var darkText: Color { Color(red: 0.08, green: 0.08, blue: 0.14) }
     private var mutedText: Color { Color(red: 0.42, green: 0.42, blue: 0.48) }
@@ -53,43 +53,49 @@ struct JournalEntryView: View {
                         .multilineTextAlignment(.center)
                         .padding(.top, 24)
 
-                    // Prompt — tap to rotate
-                    Button(action: { viewModel.rotatePrompt() }) {
-                        HStack(spacing: 8) {
-                            Text(viewModel.currentPrompt)
-                                .font(.system(size: 17, weight: .medium, design: .serif))
-                                .foregroundColor(darkText)
-                                .multilineTextAlignment(.center)
-                            Image(systemName: "arrow.clockwise")
-                                .font(.system(size: 13))
-                                .foregroundColor(mutedText)
-                        }
+                    // Prompt
+                    Text(viewModel.currentPrompt)
+                        .font(.system(size: 17, weight: .medium, design: .serif))
+                        .foregroundColor(darkText)
+                        .multilineTextAlignment(.center)
                         .padding(.horizontal, 36)
-                    }
 
-                    // Text editor
-                    ZStack(alignment: .topLeading) {
-                        if viewModel.entry.isEmpty {
-                            Text("Tap to write...")
-                                .font(.system(size: 16))
-                                .foregroundColor(mutedText.opacity(0.7))
-                                .padding(.horizontal, 4)
-                                .padding(.top, 8)
-                                .allowsHitTesting(false)
+                    // Compact preview — tap to expand
+                    Button(action: { showFullScreenJournal = true }) {
+                        ZStack(alignment: .topLeading) {
+                            if viewModel.entry.isEmpty {
+                                VStack(spacing: 6) {
+                                    Text("Tap to write")
+                                        .font(.system(size: 16))
+                                        .foregroundColor(mutedText.opacity(0.7))
+                                    HStack(spacing: 6) {
+                                        Image(systemName: "square.and.pencil")
+                                            .font(.system(size: 14))
+                                        Text("Full journaling experience")
+                                            .font(.system(size: 13))
+                                    }
+                                    .foregroundColor(mutedText.opacity(0.55))
+                                }
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            } else {
+                                Text(viewModel.entry)
+                                    .font(.system(size: 16))
+                                    .foregroundColor(darkText)
+                                    .lineLimit(3)
+                                    .frame(maxWidth: .infinity, alignment: .topLeading)
+                                    .padding(16)
+                            }
                         }
-                        TextEditor(text: $viewModel.entry)
-                            .font(.system(size: 16))
-                            .foregroundColor(darkText)
-                            .scrollContentBackground(.hidden)
-                            .background(Color.clear)
-                            .frame(minHeight: 140, maxHeight: 200)
-                            .focused($isFocused)
+                        .frame(height: 130)
+                        .background(Color.white.opacity(0.5))
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(Color.white.opacity(0.6), lineWidth: 1)
+                        )
                     }
-                    .padding(16)
-                    .background(Color.white.opacity(0.5))
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .buttonStyle(PlainButtonStyle())
                     .padding(.horizontal, 24)
-                    .onTapGesture { isFocused = true }
 
                     // Word count + tip
                     HStack {
@@ -111,16 +117,22 @@ struct JournalEntryView: View {
                 // Buttons
                 VStack(spacing: 12) {
                     Button(action: {
-                        Task {
-                            await viewModel.save(feeling: feeling)
+                        if viewModel.entry.isEmpty {
                             onComplete()
+                        } else {
+                            Task {
+                                await viewModel.save(feeling: feeling)
+                                onComplete()
+                            }
                         }
                     }) {
                         HStack(spacing: 8) {
                             Text(viewModel.entry.isEmpty ? "Skip for tonight" : "Save & Sleep Well")
                                 .font(.system(size: 17, weight: .semibold))
-                            Image(systemName: viewModel.entry.isEmpty ? "arrow.right" : "moon.stars.fill")
-                                .font(.system(size: 15))
+                            if !viewModel.entry.isEmpty {
+                                Image(systemName: "moon.stars.fill")
+                                    .font(.system(size: 15))
+                            }
                         }
                         .foregroundColor(darkText)
                         .frame(maxWidth: .infinity)
@@ -133,7 +145,7 @@ struct JournalEntryView: View {
 
                     if !viewModel.entry.isEmpty {
                         Button(action: onSkip) {
-                            Text("Skip without saving")
+                            Text("Discard & skip")
                                 .font(.system(size: 15))
                                 .foregroundColor(darkText.opacity(0.5))
                                 .underline()
@@ -143,6 +155,19 @@ struct JournalEntryView: View {
                 .padding(.horizontal, 24)
                 .padding(.bottom, 48)
             }
+        }
+        .fullScreenCover(isPresented: $showFullScreenJournal) {
+            FullScreenJournalView(
+                viewModel: viewModel,
+                feeling: feeling,
+                onSave: {
+                    showFullScreenJournal = false
+                    Task {
+                        await viewModel.save(feeling: feeling)
+                        onComplete()
+                    }
+                }
+            )
         }
         .onAppear {
             Task { await viewModel.load(feeling: feeling) }

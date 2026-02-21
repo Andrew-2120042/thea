@@ -93,6 +93,17 @@ struct AffirmationView: View {
                             .font(.system(size: 13))
                             .foregroundColor(.white.opacity(0.5))
                     }
+
+                    // Skip button for testing
+                    Button(action: {
+                        dismiss()
+                    }) {
+                        Text("Skip")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.white.opacity(0.6))
+                            .underline()
+                    }
+                    .padding(.top, 12)
                 }
 
                 Spacer()

@@ -1,10 +1,20 @@
 import SwiftUI
+import PhotosUI
 
 @MainActor
 class JournalViewModel: ObservableObject {
     @Published var entry: String = ""
     @Published var currentPrompt: String = ""
     @Published var isLoading = false
+    @Published var attachedPhotos: [String] = [] // URLs of uploaded photos
+    @Published var isUploadingPhoto = false
+    var deviceId: String {
+        let key = "hype_device_id"
+        if let stored = UserDefaults.standard.string(forKey: key) { return stored }
+        let new = UUID().uuidString
+        UserDefaults.standard.set(new, forKey: key)
+        return new
+    }
 
     private let defaultPrompts = [
         "What's one thing you're grateful for today?",
@@ -41,11 +51,14 @@ class JournalViewModel: ObservableObject {
             if let journal = try await JournalService.shared.getTodaysJournal() {
                 entry = journal.entry
                 currentPrompt = journal.prompt ?? promptFor(feeling)
+                attachedPhotos = journal.photoUrls ?? []
             } else {
                 currentPrompt = promptFor(feeling)
+                attachedPhotos = []
             }
         } catch {
             currentPrompt = promptFor(feeling)
+            attachedPhotos = []
             print("JournalViewModel: load failed — \(error)")
         }
     }
@@ -58,9 +71,34 @@ class JournalViewModel: ObservableObject {
     func save(feeling: String?) async {
         guard !entry.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         do {
-            try await JournalService.shared.saveJournal(entry: entry, prompt: currentPrompt, feeling: feeling)
+            try await JournalService.shared.saveJournal(entry: entry, prompt: currentPrompt, feeling: feeling, photoUrls: attachedPhotos.isEmpty ? nil : attachedPhotos)
         } catch {
             print("JournalViewModel: save failed — \(error)")
+        }
+    }
+
+    func attachPhoto(_ item: PhotosPickerItem) async {
+        isUploadingPhoto = true
+        do {
+            let journalId = deviceId + "_" + ISO8601DateFormatter().string(from: Date())
+            let photoUrl = try await PhotoStorageService.shared.uploadPhoto(
+                item: item,
+                journalId: journalId
+            )
+            attachedPhotos.append(photoUrl)
+        } catch {
+            print("Failed to upload photo: \(error)")
+        }
+        isUploadingPhoto = false
+    }
+
+    func removePhoto(at index: Int) async {
+        let url = attachedPhotos[index]
+        do {
+            try await PhotoStorageService.shared.deletePhoto(url: url)
+            attachedPhotos.remove(at: index)
+        } catch {
+            print("Failed to delete photo: \(error)")
         }
     }
 

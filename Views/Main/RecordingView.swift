@@ -84,8 +84,23 @@ struct RecordingView: View {
                 Text(viewModel.feedback)
                     .font(.system(size: 18, weight: .semibold))
                     .foregroundColor(viewModel.feedbackColor)
-                    .padding(.bottom, 100)
+                    .padding(.bottom, 24)
                     .animation(.easeInOut(duration: 0.3), value: viewModel.feedback)
+
+                // Skip button for testing
+                Button(action: {
+                    viewModel.stopRecording()
+                    showHype = true
+                }) {
+                    Text("Skip")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 32)
+                        .padding(.vertical, 14)
+                        .background(Color.white.opacity(0.2))
+                        .clipShape(Capsule())
+                }
+                .padding(.bottom, 40)
             }
         }
         .ignoresSafeArea()
