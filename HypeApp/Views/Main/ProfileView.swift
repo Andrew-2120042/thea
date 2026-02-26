@@ -1,9 +1,9 @@
 import SwiftUI
 
-private let settingsAccent = Color(red: 0.72, green: 0.34, blue: 0.26)
-private let settingsBg     = Color(red: 0.97, green: 0.96, blue: 0.94)
-private let settingsDark   = Color(red: 0.10, green: 0.10, blue: 0.14)
-private let settingsMuted  = Color(red: 0.50, green: 0.50, blue: 0.54)
+private let settingsAccent = HypeSettingsColors.accent
+private let settingsBg     = HypeSettingsColors.bg
+private let settingsDark   = HypeSettingsColors.dark
+private let settingsMuted  = HypeSettingsColors.muted
 
 struct ProfileView: View {
     @StateObject private var viewModel = SettingsViewModel()

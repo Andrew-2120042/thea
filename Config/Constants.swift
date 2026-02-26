@@ -24,35 +24,52 @@ struct Constants {
 }
 
 // MARK: - Hype Colors
+
 struct HypeColors {
-    static let morningGradient = LinearGradient(
-        colors: [Color(hex: "#B8C8D8"), Color(hex: "#D4A96A"), Color(hex: "#8090A8")],
-        startPoint: .top,
-        endPoint: .bottom
-    )
-
-    static let afternoonGradient = LinearGradient(
-        colors: [Color(hex: "#60A5FA"), Color(hex: "#93C5FD"), Color(hex: "#3B82F6")],
-        startPoint: .topLeading,
-        endPoint: .bottomTrailing
-    )
-
-    static let eveningGradient = LinearGradient(
-        colors: [Color(hex: "#F59E0B"), Color(hex: "#EC4899"), Color(hex: "#8B5CF6")],
-        startPoint: .topLeading,
-        endPoint: .bottomTrailing
-    )
-
-    static let nightGradient = LinearGradient(
-        colors: [Color(hex: "#C4B5E8"), Color(hex: "#A8C4E8"), Color(hex: "#E8D5C4")],
-        startPoint: .top,
-        endPoint: .bottom
-    )
-
-    static let primary = Color(hex: "#8B5CF6")
+    // Brand accents — fixed, never change with theme
+    static let primary   = Color(hex: "#8B5CF6")
     static let secondary = Color(hex: "#EC4899")
-    static let accent = Color(hex: "#F59E0B")
-    static let streak = Color(hex: "#F97316")
+    static let accent    = Color(hex: "#F59E0B")
+    static let streak    = Color(hex: "#F97316")
+
+    // MARK: Theme-aware helpers
+
+    /// The gradient stop colors for a given theme.
+    /// Callers construct their own LinearGradient so they control start/end points.
+    static func gradient(for theme: AppTheme) -> [Color] {
+        switch theme {
+        case .morning:
+            return [Color(hex: "#FDB99B"), Color(hex: "#FCA15D"), Color(hex: "#F9845B")]
+        case .afternoon:
+            return [Color(hex: "#FFE5B4"), Color(hex: "#FFDAB9"), Color(hex: "#FFB6C1")]
+        case .evening:
+            return [Color(hex: "#E0BBE4"), Color(hex: "#C8A2C8"), Color(hex: "#B19CD9")]
+        case .night:
+            return [Color(hex: "#2C3E50"), Color(hex: "#3D5A80"), Color(hex: "#4A6FA5")]
+        }
+    }
+
+    /// Primary text color for a given theme.
+    /// Daytime themes use near-black (light backgrounds); evening/night use white.
+    static func textColor(for theme: AppTheme) -> Color {
+        theme.isDaytime
+            ? Color(red: 0.08, green: 0.08, blue: 0.14)
+            : .white
+    }
+
+    /// Card material — consistent across all themes.
+    static func cardMaterial(for theme: AppTheme) -> Material {
+        .ultraThinMaterial
+    }
+}
+
+// MARK: - Settings Colors (shared by ProfileView + SettingsView)
+
+struct HypeSettingsColors {
+    static let accent = Color(red: 0.72, green: 0.34, blue: 0.26)  // warm terracotta
+    static let bg     = Color(red: 0.97, green: 0.96, blue: 0.94)  // cream
+    static let dark   = Color(red: 0.10, green: 0.10, blue: 0.14)  // near-black
+    static let muted  = Color(red: 0.50, green: 0.50, blue: 0.54)  // mid gray
 }
 
 // MARK: - Color Hex Extension
