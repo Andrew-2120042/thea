@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct AffirmationsFeedView: View {
-    @EnvironmentObject var themeManager: ThemeManager
     @StateObject private var affirmationVM = AffirmationViewModel()
 
     @State private var currentIndex: Int? = 0
@@ -22,7 +21,7 @@ struct AffirmationsFeedView: View {
                     HStack {
                         Text("Affirmations")
                             .font(.system(size: 32, weight: .regular, design: .serif))
-                            .foregroundColor(HypeColors.textColor(for: themeManager.activeTheme))
+                            .foregroundColor(Color(hex: "#1A1A1A"))
 
                         Spacer()
 
@@ -39,23 +38,15 @@ struct AffirmationsFeedView: View {
                 }
 
             } else if affirmationVM.isLoading {
-                LinearGradient(
-                    colors: HypeColors.gradient(for: themeManager.activeTheme),
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea()
+                Color(hex: "#FAF9F6")
+                    .ignoresSafeArea()
 
                 ProgressView()
                     .scaleEffect(1.5)
-                    .tint(HypeColors.textColor(for: themeManager.activeTheme))
+                    .tint(Color(hex: "#8B5CF6"))
             } else {
-                LinearGradient(
-                    colors: HypeColors.gradient(for: themeManager.activeTheme),
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea()
+                Color(hex: "#FAF9F6")
+                    .ignoresSafeArea()
 
                 VStack(spacing: 8) {
                     Text("No affirmations found")
@@ -130,18 +121,13 @@ struct AffirmationsReelView: View {
 
 struct AffirmationCard: View {
     let affirmation: Affirmation
-    @EnvironmentObject var themeManager: ThemeManager
     @State private var isFavorited = false
 
     var body: some View {
         ZStack {
-            // Background — theme-driven gradient, renders edge-to-edge
-            LinearGradient(
-                colors: HypeColors.gradient(for: themeManager.activeTheme),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
+            // Background — renders edge-to-edge
+            Color(hex: "#FAF9F6")
+                .ignoresSafeArea()
 
             VStack(spacing: 0) {
                 Spacer()
@@ -169,7 +155,7 @@ struct AffirmationCard: View {
                 // Affirmation text
                 Text(affirmation.text)
                     .font(.system(size: 32, weight: .regular, design: .serif))
-                    .foregroundColor(HypeColors.textColor(for: themeManager.activeTheme))
+                    .foregroundColor(Color(hex: "#1A1A1A"))
                     .multilineTextAlignment(.center)
                     .lineSpacing(8)
                     .padding(.horizontal, 36)

@@ -27,3 +27,19 @@ struct GradientVideoBackground: View {
     }
 }
 
+// MARK: - Time-Based Gradient View
+struct TimeBasedGradientBackground: View {
+    var body: some View {
+        GradientVideoBackground(gradient: currentGradient)
+    }
+
+    private var currentGradient: LinearGradient {
+        let hour = Calendar.current.component(.hour, from: Date())
+        switch hour {
+        case 5..<12: return HypeColors.morningGradient
+        case 12..<17: return HypeColors.afternoonGradient
+        case 17..<21: return HypeColors.eveningGradient
+        default: return HypeColors.nightGradient
+        }
+    }
+}

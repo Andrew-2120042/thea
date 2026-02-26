@@ -39,23 +39,36 @@ class AffirmationViewModel: ObservableObject {
         voiceThreshold = settings.voiceThreshold
         isLoading = true
 
-        let mode = ThemeManager.themeForCurrentHour().affirmationMode
-
         Task {
             do {
                 currentAffirmation = try await AffirmationService.shared.getTodaysAffirmation(
-                    mode: mode,
+                    mode: currentMode(settings: settings),
                     categories: settings.preferredCategories,
                     deviceId: settings.deviceId
                 )
             } catch {
                 self.error = error.localizedDescription
                 currentAffirmation = AffirmationService.shared.getFallbackAffirmation(
-                    mode: mode,
+                    mode: currentMode(settings: settings),
                     categories: settings.preferredCategories
                 )
             }
             isLoading = false
+        }
+    }
+
+    private func currentMode(settings: UserSettings) -> Affirmation.AffirmationMode {
+        let hour = Calendar.current.component(.hour, from: Date())
+        return hour < 17 ? .morning : .night
+    }
+
+    func getCurrentGradient() -> LinearGradient {
+        let hour = Calendar.current.component(.hour, from: Date())
+        switch hour {
+        case 5..<12: return HypeColors.morningGradient
+        case 12..<17: return HypeColors.afternoonGradient
+        case 17..<21: return HypeColors.eveningGradient
+        default: return HypeColors.nightGradient
         }
     }
 }

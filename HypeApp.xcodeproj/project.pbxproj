@@ -81,7 +81,6 @@
 		EE4CCDB22E7E23895B18BDC0 /* RitualFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCE5E0FACA0BAAD604A3747D /* RitualFlowView.swift */; };
 		F0FAD4D67240446623520777 /* CircularVoiceDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 904D59622376DB183C012365 /* CircularVoiceDetector.swift */; };
 		F20C1435834F0B8395770423 /* StatsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00D7BBE690CF05668004D717 /* StatsViewModel.swift */; };
-		F31367869C5B0000A7ADA84C /* ThemeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA027D00262AC2B15349667D /* ThemeManager.swift */; };
 		F58705EA2CE59F7FB72D10A2 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = E542058187D57A10FA8B5F3E /* Constants.swift */; };
 		F89B0CB59412E693CD2A2162 /* AffirmationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C5C82E578029BDC4E070E76 /* AffirmationService.swift */; };
 		F9D39443CD05ADF38368FBC7 /* IntentionsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E3E83A1B60BC716F51D23AE /* IntentionsService.swift */; };
@@ -136,7 +135,6 @@
 		9E64DADE4E012D8A5A4D2700 /* SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
 		A05C6F949F5BE3CF663E67C3 /* JournalHistoryView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = JournalHistoryView.swift; sourceTree = "<group>"; };
 		A16222D4B16E7AC9D1A85CB9 /* HomeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewModel.swift; sourceTree = "<group>"; };
-		AA027D00262AC2B15349667D /* ThemeManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ThemeManager.swift; path = Managers/ThemeManager.swift; sourceTree = "<group>"; };
 		ADB5C5D9C0A62112242DDE7C /* MainContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainContainerView.swift; sourceTree = "<group>"; };
 		B19111B86795DBAF4C5B8DA0 /* HypeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HypeView.swift; sourceTree = "<group>"; };
 		B4D2629A4F15AF34F787F09D /* GlassCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassCard.swift; sourceTree = "<group>"; };
@@ -329,17 +327,7 @@
 				C824FDB56BA39739A63203D5 /* Views */,
 				30581C8C26DA1989F8F6D2ED /* Frameworks */,
 				63A5F3004EC6E1DD0A71C0C0 /* Products */,
-				EDE6258EC001A351B4A5C42B /* Managers */,
 			);
-			sourceTree = "<group>";
-		};
-		EDE6258EC001A351B4A5C42B /* Managers */ = {
-			isa = PBXGroup;
-			children = (
-				AA027D00262AC2B15349667D /* ThemeManager.swift */,
-			);
-			name = Managers;
-			path = Managers;
 			sourceTree = "<group>";
 		};
 		F322608370AA6DA3D6750EF3 /* Services */ = {
@@ -509,7 +497,6 @@
 				EE4CCDB22E7E23895B18BDC0 /* RitualFlowView.swift in Sources */,
 				96F30B5C917F9662576BB95B /* AffirmationsFeedView.swift in Sources */,
 				1B2C29C552ECAD40EEDDF405 /* ProfileView.swift in Sources */,
-				F31367869C5B0000A7ADA84C /* ThemeManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

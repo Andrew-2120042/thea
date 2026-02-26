@@ -2,7 +2,6 @@ import SwiftUI
 
 struct AffirmationView: View {
     @Environment(\.dismiss) var dismiss
-    @EnvironmentObject var themeManager: ThemeManager
     @StateObject private var viewModel = AffirmationViewModel()
     @State private var showRecording = false
     @State private var showPaywall = false
@@ -11,11 +10,7 @@ struct AffirmationView: View {
 
     var body: some View {
         ZStack {
-            GradientVideoBackground(gradient: LinearGradient(
-                colors: HypeColors.gradient(for: themeManager.activeTheme),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            ))
+            GradientVideoBackground(gradient: viewModel.getCurrentGradient())
 
             VStack(spacing: 0) {
                 // Navigation bar
@@ -138,7 +133,7 @@ struct AffirmationView: View {
     }
 
     private var isEvening: Bool {
-        !themeManager.activeTheme.isDaytime
+        Calendar.current.component(.hour, from: Date()) >= 17
     }
 
     private func animateText() {

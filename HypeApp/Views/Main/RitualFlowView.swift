@@ -10,13 +10,13 @@ struct RitualFlowView: View {
     @StateObject private var intentionsVM = IntentionsViewModel()
     @StateObject private var journalVM = JournalViewModel()
     @EnvironmentObject var storeKit: StoreKitService
-    @EnvironmentObject var themeManager: ThemeManager
 
     @State private var page: Int = 1  // Start at ritual page
     @State private var pageOpacity: Double = 1.0
     @State private var bridgeOpacity: Double = 0.0
     @State private var isRecording = false
     @State private var selectedFeeling: String?
+    @State private var isMorningOverride: Int = UserDefaults.standard.integer(forKey: "debug_time_mode")
 
     private let lavenderBridge = LinearGradient(
         colors: [Color(red: 0.82, green: 0.84, blue: 0.97), Color(red: 0.72, green: 0.74, blue: 0.92)],
@@ -83,13 +83,21 @@ struct RitualFlowView: View {
         if page >= 3 && page <= 4 {
             lavenderBackground.ignoresSafeArea()
         } else {
-            LinearGradient(
-                colors: HypeColors.gradient(for: themeManager.activeTheme),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
+            timeBasedGradient.ignoresSafeArea()
         }
+    }
+
+    private var timeBasedGradient: LinearGradient {
+        let hour = Calendar.current.component(.hour, from: Date())
+        let colors: [Color] = {
+            switch hour {
+            case 5..<12:  return [Color(hex: "#FDB99B"), Color(hex: "#FCA15D"), Color(hex: "#F9845B")]
+            case 12..<17: return [Color(hex: "#FFE5B4"), Color(hex: "#FFDAB9"), Color(hex: "#FFB6C1")]
+            case 17..<21: return [Color(hex: "#E0BBE4"), Color(hex: "#C8A2C8"), Color(hex: "#B19CD9")]
+            default:      return [Color(hex: "#2C3E50"), Color(hex: "#3D5A80"), Color(hex: "#4A6FA5")]
+            }
+        }()
+        return LinearGradient(colors: colors, startPoint: .topLeading, endPoint: .bottomTrailing)
     }
 
     // MARK: - Page 1: Ritual Start
@@ -414,7 +422,7 @@ struct RitualFlowView: View {
         )
     }
 
-    private var darkText: Color { HypeColors.textColor(for: themeManager.activeTheme) }
+    private var darkText: Color { Color(red: 0.08, green: 0.08, blue: 0.14) }
 
     private var suggestedFeeling: String {
         let hour = Calendar.current.component(.hour, from: Date())
@@ -537,9 +545,17 @@ struct RitualFlowView: View {
     }
 
     // MARK: - Helper Methods
+    private var isMorning: Bool {
+        #if DEBUG
+        if isMorningOverride == 1 { return true }
+        if isMorningOverride == 2 { return false }
+        #endif
+        let hour = Calendar.current.component(.hour, from: Date())
+        return hour >= 5 && hour < 17
+    }
 
     private func navigateAfterFeeling() {
-        if themeManager.activeTheme.isDaytime {
+        if isMorning {
             Task { await intentionsVM.loadToday() }
             go(6)
         } else {

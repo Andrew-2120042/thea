@@ -2,7 +2,6 @@ import SwiftUI
 
 struct RecordingView: View {
     @Environment(\.dismiss) var dismiss
-    @EnvironmentObject var themeManager: ThemeManager
     @StateObject private var viewModel = RecordingViewModel()
     @State private var showHype = false
     @State private var progressSeconds: Double = 0
@@ -12,11 +11,7 @@ struct RecordingView: View {
 
     var body: some View {
         ZStack {
-            GradientVideoBackground(gradient: LinearGradient(
-                colors: HypeColors.gradient(for: themeManager.activeTheme),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            ))
+            GradientVideoBackground(gradient: currentGradient)
 
             VStack(spacing: 0) {
                 // Nav bar
@@ -134,4 +129,13 @@ struct RecordingView: View {
         }
     }
 
+    private var currentGradient: LinearGradient {
+        let hour = Calendar.current.component(.hour, from: Date())
+        switch hour {
+        case 5..<12: return HypeColors.morningGradient
+        case 12..<17: return HypeColors.afternoonGradient
+        case 17..<21: return HypeColors.eveningGradient
+        default: return HypeColors.nightGradient
+        }
+    }
 }
