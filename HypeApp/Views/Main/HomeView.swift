@@ -45,13 +45,13 @@ struct HomeView: View {
             Task { await intentionsVM.loadToday() }
         }
         // Haptic celebration when all words matched — navigation is via the Continue button
-        .onChange(of: recordingVM.completionPercentage) { pct in
+        .onChange(of: recordingVM.completionPercentage) { _, pct in
             guard page == 2, pct >= 1.0, !recordingVM.thresholdReached else { return }
             recordingVM.thresholdReached = true
             HapticManager.successCelebration()
         }
         // Voice-level fallback: mark ready so Continue button enables
-        .onChange(of: recordingVM.readyToAdvance) { ready in
+        .onChange(of: recordingVM.readyToAdvance) { _, ready in
             guard ready else { return }
             recordingVM.thresholdReached = true
             HapticManager.successCelebration()
@@ -936,7 +936,7 @@ struct PageTextEntrance: ViewModifier {
         content
             .opacity(visible ? 1 : 0)
             .offset(y: visible ? 0 : 18)
-            .onChange(of: page) { newPage in
+            .onChange(of: page) { _, newPage in
                 if newPage == targetPage {
                     visible = false
                     withAnimation(.easeOut(duration: 0.45).delay(0.15)) {
@@ -1058,7 +1058,7 @@ struct StaggeredText: View {
                 }
             }
         }
-        .onChange(of: trigger) { val in
+        .onChange(of: trigger) { _, val in
             if val {
                 show = false // Ensure reset
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {

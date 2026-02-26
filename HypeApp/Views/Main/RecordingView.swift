@@ -110,7 +110,7 @@ struct RecordingView: View {
         .onDisappear {
             viewModel.stopRecording()
         }
-        .onChange(of: viewModel.speechService.completionPercentage) { pct in
+        .onChange(of: viewModel.speechService.completionPercentage) { _, pct in
             guard pct >= 0.90, !viewModel.thresholdReached else { return }
             viewModel.thresholdReached = true
             HapticManager.successCelebration()
@@ -119,7 +119,7 @@ struct RecordingView: View {
                 showHype = true
             }
         }
-        .onChange(of: viewModel.readyToAdvance) { ready in
+        .onChange(of: viewModel.readyToAdvance) { _, ready in
             guard ready else { return }
             viewModel.resetSession()
             showHype = true

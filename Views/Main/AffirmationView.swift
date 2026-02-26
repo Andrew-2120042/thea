@@ -115,7 +115,7 @@ struct AffirmationView: View {
             viewModel.loadAffirmation()
             animateText()
         }
-        .onChange(of: viewModel.showPaywall) { show in
+        .onChange(of: viewModel.showPaywall) { _, show in
             if show {
                 dismiss()
                 showPaywall = true

@@ -4,7 +4,7 @@ class AffirmationService {
     static let shared = AffirmationService()
 
     // MARK: - Fallback affirmations when Supabase is unavailable
-    private let fallbackAffirmations: [Affirmation] = [
+    let fallbackAffirmations: [Affirmation] = [
         Affirmation(id: UUID(), text: "I am worthy of love, success, and all good things.", mode: .morning, category: "confidence", active: true, orderIndex: 1),
         Affirmation(id: UUID(), text: "I trust myself to handle whatever comes my way.", mode: .morning, category: "confidence", active: true, orderIndex: 2),
         Affirmation(id: UUID(), text: "My potential is limitless and I am just getting started.", mode: .morning, category: "confidence", active: true, orderIndex: 3),

@@ -335,7 +335,7 @@ struct FullScreenJournalView: View {
             PhotosPicker(selection: $selectedPhoto, matching: .images) {
                 toolbarButtonContent(.photo)
             }
-            .onChange(of: selectedPhoto) { newItem in
+            .onChange(of: selectedPhoto) { _, newItem in
                 Task {
                     if let item = newItem {
                         await viewModel.attachPhoto(item)

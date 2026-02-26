@@ -33,7 +33,7 @@ class VoiceRecorder: NSObject, ObservableObject {
         #if os(iOS)
         // Request microphone authorization
         let micStatus = await withCheckedContinuation { (continuation: CheckedContinuation<Bool, Never>) in
-            AVAudioSession.sharedInstance().requestRecordPermission { granted in
+            AVAudioApplication.requestRecordPermission { granted in
                 continuation.resume(returning: granted)
             }
         }

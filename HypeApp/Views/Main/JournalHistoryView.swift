@@ -530,7 +530,7 @@ struct EditJournalView: View {
                     .foregroundColor(darkText)
                     .frame(width: 40, height: 40)
             }
-            .onChange(of: selectedPhoto) { newItem in
+            .onChange(of: selectedPhoto) { _, newItem in
                 Task {
                     if let item = newItem {
                         await attachPhoto(item)
